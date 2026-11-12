@@ -108,7 +108,7 @@
   /**
    * Guarda los datos financieros aislados por usuario en localStorage
    */
-  function saveUserFinancialData(userId, data) {
+  function saveUserFinancialData(userId, data, skipCloud) {
     userId = userId || 'usuario-principal';
     var key = STORAGE_PREFIX + userId;
     var serialized = JSON.stringify(data);
@@ -121,6 +121,11 @@
       }
     } catch (err) {
       // Manejo silencioso de errores
+    }
+
+    // Con Firebase activo, cada guardado también se envía a la nube
+    if (!skipCloud && typeof window !== 'undefined' && window.FinCloud && window.FinCloud.enabled) {
+      window.FinCloud.queueSave(userId, data);
     }
   }
 
@@ -188,7 +193,7 @@
   /**
    * Guarda los parametros del sistema validados
    */
-  function saveSystemParams(params) {
+  function saveSystemParams(params, fromCloud) {
     if (!params) return false;
     var sanitized = {
       rule50: Math.max(0, Math.min(100, Number(params.rule50) || DEFAULT_SYSTEM_PARAMS.rule50)),
@@ -206,6 +211,9 @@
         window.localStorage.setItem(PARAMS_STORAGE_KEY, serialized);
       } else {
         memoryStore[PARAMS_STORAGE_KEY] = serialized;
+      }
+      if (!fromCloud && typeof window !== 'undefined' && window.FinCloud && window.FinCloud.enabled) {
+        window.FinCloud.pushParams(sanitized);
       }
       return true;
     } catch (e) {
