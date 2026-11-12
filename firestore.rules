@@ -1,0 +1,64 @@
+rules_version = '2';
+
+// Reglas de seguridad de Finanzas App.
+// Copiar en: Consola de Firebase > Firestore Database > Reglas > Publicar.
+//
+//  users/{uid}      perfil de la cuenta (nombre, correo, rol, activo)
+//  userData/{uid}   datos financieros del usuario (solo su dueño con correo verificado)
+//  config/params    parámetros globales (lee cualquier usuario verificado, escribe SuperAdmin)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function verified() {
+      return signedIn() && request.auth.token.email_verified == true;
+    }
+
+    function profile(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function isAdmin() {
+      return verified() && profile(request.auth.uid).role == 'superadmin'
+             && profile(request.auth.uid).active == true;
+    }
+
+    function isActiveOwner(uid) {
+      return verified() && request.auth.uid == uid && profile(uid).active == true;
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+
+      // Una cuenta nueva solo puede crear su propio perfil como usuario normal y activo.
+      allow create: if (signedIn() && request.auth.uid == uid
+                        && request.resource.data.role == 'usuario'
+                        && request.resource.data.active == true)
+                    || isAdmin();
+
+      // El dueño puede cambiar su nombre, pero no su rol, estado ni correo.
+      allow update: if (signedIn() && request.auth.uid == uid
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.active == resource.data.active
+                        && request.resource.data.email == resource.data.email)
+                    || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    match /userData/{uid} {
+      allow read, write: if isActiveOwner(uid);
+      allow read, delete: if isAdmin();
+    }
+
+    match /config/{doc} {
+      allow read: if verified();
+      allow write: if isAdmin();
+    }
+  }
+}
