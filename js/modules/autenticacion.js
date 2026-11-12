@@ -24,6 +24,10 @@
     active: true,
   };
 
+  function cloudOn() {
+    return !!(root.FinCloud && root.FinCloud.enabled);
+  }
+
   /**
    * Generador de sal aleatoria
    */
@@ -155,6 +159,7 @@
    * Obtiene la lista de usuarios de localStorage
    */
   function getUsers() {
+    if (cloudOn()) return root.FinCloud.getCachedUsers();
     try {
       var raw = window.localStorage.getItem(USERS_STORAGE_KEY);
       if (raw) {
@@ -171,6 +176,7 @@
    * Guarda la lista de usuarios en localStorage
    */
   function saveUsers(users) {
+    if (cloudOn()) { root.FinCloud.setCachedUsers(users); return; }
     try {
       window.localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
     } catch (e) {
@@ -270,6 +276,13 @@
 
   // Caso de uso: Iniciar sesión
   function login(email, password, callback) {
+    if (cloudOn()) {
+      root.FinCloud.login(email, password, function (res) {
+        if (res.success) res.session = setSession(res.user);
+        callback(res);
+      });
+      return;
+    }
     var users = getUsers();
     var cleanEmail = (email || '').trim().toLowerCase();
     var found = null;
@@ -303,7 +316,9 @@
 
   // Caso de uso: Cerrar sesión
   function logout() {
+    var prev = getActiveSession();
     clearSession();
+    if (cloudOn()) root.FinCloud.logout(prev ? prev.userId : null);
     if (root.FinApp) {
       root.FinApp.state.currentUser = null;
       root.FinApp.navigateTo('dashboard');
@@ -315,6 +330,25 @@
     var session = getActiveSession();
     if (!session) {
       callback({ success: false, message: 'No hay sesión activa.' });
+      return;
+    }
+
+    if (cloudOn()) {
+      var cleanName = (name || '').trim() || session.name;
+      var wantsEmail = (email || '').trim().toLowerCase();
+      if (wantsEmail && wantsEmail !== (session.email || '').toLowerCase()) {
+        callback({ success: false, message: 'Con la cuenta en la nube el correo no se puede cambiar.' });
+        return;
+      }
+      root.FinCloud.updateOwnProfile(session.userId, cleanName, currentPassword, (newPassword || '').trim(), function (res) {
+        if (!res.success) { callback(res); return; }
+        var updated = { id: session.userId, name: cleanName, email: session.email, role: session.role };
+        setSession(updated);
+        if (root.FinApp && root.FinApp.state && root.FinApp.state.data && root.FinApp.state.data.profile) {
+          root.FinApp.state.data.profile.name = cleanName;
+        }
+        callback({ success: true, message: 'Perfil actualizado con éxito.', user: updated });
+      });
       return;
     }
 
@@ -388,6 +422,10 @@
    * Registro local de nuevo usuario
    */
   function register(name, email, password, callback) {
+    if (cloudOn()) {
+      root.FinCloud.register(name, email, password, callback);
+      return;
+    }
     var users = getUsers();
     var cleanEmail = (email || '').trim().toLowerCase();
 
@@ -462,7 +500,10 @@
       html += '      </div>';
       html += '      <div class="form-group">';
       html += '        <label class="form-label">Contraseña *</label>';
-      html += '        <input type="password" id="auth-reg-password" class="form-control" placeholder="Crea una contraseña" required>';
+      html += '        <input type="password" id="auth-reg-password" class="form-control" placeholder="Crea una contraseña" required' + (cloudOn() ? ' minlength="6"' : '') + '>';
+      if (cloudOn()) {
+        html += '        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.35rem;">Mínimo 6 caracteres. Te enviaremos un correo para confirmar tu dirección.</div>';
+      }
       html += '      </div>';
       html += '      <div style="margin-top:1.5rem;">';
       html += '        <button type="submit" class="btn-primary" style="width:100%;justify-content:center;padding:0.75rem;">Crear cuenta</button>';
@@ -475,7 +516,7 @@
       html += '    <form id="form-auth-login">';
       html += '      <div class="form-group">';
       html += '        <label class="form-label">Correo electrónico *</label>';
-      html += '        <input type="email" id="auth-login-email" class="form-control" placeholder="usuario@finanzas.local" required value="usuario@finanzas.local">';
+      html += '        <input type="email" id="auth-login-email" class="form-control" placeholder="tu@correo.com" required>';
       html += '      </div>';
       html += '      <div class="form-group">';
       html += '        <label class="form-label">Contraseña *</label>';
@@ -489,6 +530,20 @@
       html += '      </div>';
       html += '    </form>';
 
+      if (cloudOn()) {
+        html += '    <div style="text-align:center;margin-top:0.5rem;">';
+        html += '      <button type="button" class="text-link" id="btn-forgot-toggle">¿Olvidaste tu contraseña?</button>';
+        html += '      <span style="color:var(--text-tertiary);"> · </span>';
+        html += '      <button type="button" class="text-link" id="btn-resend-verification">Reenviar verificación</button>';
+        html += '    </div>';
+        html += '    <form id="form-auth-reset" style="display:none;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border-subtle);">';
+        html += '      <div class="form-group">';
+        html += '        <label class="form-label">Correo de tu cuenta</label>';
+        html += '        <input type="email" id="auth-reset-email" class="form-control" placeholder="tu@correo.com" required>';
+        html += '      </div>';
+        html += '      <button type="submit" class="btn-secondary" style="width:100%;justify-content:center;">Enviar enlace de recuperación</button>';
+        html += '    </form>';
+      }
     }
 
     html += '  </div>';
@@ -496,8 +551,8 @@
     return html;
   }
 
-  // Inicializacion de usuarios
-  getUsers();
+  // Inicializacion de usuarios (solo en modo local)
+  if (!cloudOn()) getUsers();
 
   root.FinApp.autenticacion = {
     DEFAULT_ADMIN: DEFAULT_ADMIN,

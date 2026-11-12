@@ -7,6 +7,14 @@
 
   var Storage = (typeof window !== 'undefined' ? window.FinStorage : null) || root.FinStorage;
 
+  function cloudOn() {
+    return !!(root.FinCloud && root.FinCloud.enabled);
+  }
+
+  function esc(v) {
+    return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   // Caso de uso: Gestionar usuarios
   function listarUsuarios() {
     if (root.FinApp.autenticacion && typeof root.FinApp.autenticacion.getUsers === 'function') {
@@ -16,6 +24,27 @@
   }
 
   function crearUsuario(userData, callback) {
+    if (cloudOn()) {
+      var cleanEmail = (userData.email || '').trim().toLowerCase();
+      var cleanName = (userData.name || '').trim();
+      if (!cleanName || !cleanEmail || !userData.password) {
+        callback({ success: false, message: 'Todos los campos son obligatorios.' });
+        return;
+      }
+      if (userData.password.length < 6) {
+        callback({ success: false, message: 'La contraseña debe tener al menos 6 caracteres.' });
+        return;
+      }
+      root.FinCloud.createUserAsAdmin({ name: cleanName, email: cleanEmail, password: userData.password, role: userData.role }, function (res) {
+        if (res.success) {
+          var list = listarUsuarios();
+          list.push(res.user);
+          root.FinApp.autenticacion.saveUsers(list);
+        }
+        callback(res);
+      });
+      return;
+    }
     if (root.FinApp.autenticacion && typeof root.FinApp.autenticacion.register === 'function') {
       root.FinApp.autenticacion.register(userData.name, userData.email, userData.password, function (res) {
         if (res.success && userData.role && userData.role !== 'usuario') {
@@ -50,9 +79,13 @@
 
     for (var j = 0; j < users.length; j++) {
       if (users[j].id === userId) {
+        if (cloudOn() && users[j].email.toLowerCase() !== cleanEmail) {
+          return { success: false, message: 'Con la cuenta en la nube el correo no se puede cambiar; solo el nombre.' };
+        }
         users[j].name = cleanName;
         users[j].email = cleanEmail;
         root.FinApp.autenticacion.saveUsers(users);
+        if (cloudOn()) root.FinCloud.pushUser(users[j]);
         return { success: true, message: 'Usuario actualizado correctamente.' };
       }
     }
@@ -74,13 +107,34 @@
         }
         users[i].active = users[i].active === false ? true : false;
         root.FinApp.autenticacion.saveUsers(users);
+        if (cloudOn()) root.FinCloud.pushUser(users[i]);
         return { success: true, active: users[i].active, message: 'Estado del usuario actualizado.' };
       }
     }
     return { success: false, message: 'Usuario no encontrado.' };
   }
 
+  // Con Firebase la contraseña la define cada persona desde un enlace enviado a su correo
+  function enviarRecuperacion(userId, callback) {
+    var users = listarUsuarios();
+    for (var i = 0; i < users.length; i++) {
+      if (users[i].id === userId) {
+        root.FinCloud.sendPasswordReset(users[i].email, function (res) {
+          callback(res.success ? { success: true, message: 'Enviamos un enlace para cambiar la contraseña a ' + users[i].email + '.' } : res);
+        });
+        return;
+      }
+    }
+    callback({ success: false, message: 'Usuario no encontrado.' });
+  }
+
+  function refrescarUsuarios(callback) {
+    if (!cloudOn()) { callback({ success: true }); return; }
+    root.FinCloud.refreshUsers(callback);
+  }
+
   function restablecerContrasena(userId, newPassword, callback) {
+    if (cloudOn()) { enviarRecuperacion(userId, callback); return; }
     if (!newPassword || newPassword.trim().length < 4) {
       callback({ success: false, message: 'La contraseña debe tener al menos 4 caracteres.' });
       return;
@@ -132,6 +186,11 @@
     // Borrado de la lista de usuarios
     var filtered = users.filter(function (u) { return u.id !== userId; });
     root.FinApp.autenticacion.saveUsers(filtered);
+
+    if (cloudOn()) {
+      root.FinCloud.deleteUser(userId);
+      return { success: true, message: 'Se eliminaron el perfil y los datos financieros del usuario.' };
+    }
 
     // Borrado total de los datos financieros asociados
     if (Storage && typeof Storage.clearAllUserData === 'function') {
@@ -201,7 +260,8 @@
     html += '  <div class="surface-header">';
     html += '    <div>';
     html += '      <h2 class="surface-title">Gestión de Usuarios Registrados (' + users.length + ')</h2>';
-    html += '      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">Control de cuentas locales, activación, cambio de credenciales y eliminación.</div>';
+    html += '      <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.2rem;">' + (cloudOn() ? 'Cuentas en la nube: activación, envío de enlace para cambiar la contraseña y eliminación de datos.' : 'Control de cuentas locales, activación, cambio de credenciales y eliminación.') + '</div>';
+    if (cloudOn()) html += '    <button class="btn-secondary" id="btn-admin-refresh">Actualizar lista</button>';
     html += '    </div>';
     html += '  </div>';
 
@@ -224,16 +284,16 @@
 
       html += '        <tr>';
       html += '          <td style="font-weight:600;font-size:0.85rem;">' + u.name + '</td>';
-      html += '          <td style="font-size:0.8rem;color:var(--text-secondary);">' + u.email + '</td>';
+      html += '          <td style="font-size:0.8rem;color:var(--text-secondary);">' + esc(u.email) + '</td>';
       html += '          <td><span class="category-tag" style="background:' + (isAdmin ? 'var(--color-brand-light)' : 'var(--bg-surface-secondary)') + ';color:' + (isAdmin ? 'var(--color-brand)' : 'inherit') + ';font-weight:600;">' + (isAdmin ? 'SuperAdmin' : 'Usuario') + '</span></td>';
       html += '          <td><span class="category-tag" style="background:' + (isActive ? 'var(--color-income-light)' : 'var(--color-expense-light)') + ';color:' + (isActive ? 'var(--color-income)' : 'var(--color-expense)') + ';">' + (isActive ? 'Activo' : 'Inactivo') + '</span></td>';
       html += '          <td style="text-align:right;white-space:nowrap;">';
-      html += '            <button class="text-link" data-action="admin-edit-user" data-id="' + u.id + '" data-name="' + u.name + '" data-email="' + u.email + '" style="margin-right:0.6rem;">Editar</button>';
-      html += '            <button class="text-link" data-action="admin-reset-pw" data-id="' + u.id + '" data-email="' + u.email + '" style="margin-right:0.6rem;">Restablecer Clave</button>';
+      html += '            <button class="text-link" data-action="admin-edit-user" data-id="' + esc(u.id) + '" data-name="' + esc(u.name) + '" data-email="' + esc(u.email) + '" style="margin-right:0.6rem;">Editar</button>';
+      html += '            <button class="text-link" data-action="admin-reset-pw" data-id="' + esc(u.id) + '" data-email="' + esc(u.email) + '" style="margin-right:0.6rem;">' + (cloudOn() ? 'Enviar enlace de clave' : 'Restablecer Clave') + '</button>';
 
       if (!isAdmin) {
-        html += '            <button class="text-link" data-action="admin-toggle-active" data-id="' + u.id + '" style="margin-right:0.6rem;">' + (isActive ? 'Desactivar' : 'Activar') + '</button>';
-        html += '            <button class="text-link danger" data-action="admin-delete-user" data-id="' + u.id + '">Eliminar</button>';
+        html += '            <button class="text-link" data-action="admin-toggle-active" data-id="' + esc(u.id) + '" style="margin-right:0.6rem;">' + (isActive ? 'Desactivar' : 'Activar') + '</button>';
+        html += '            <button class="text-link danger" data-action="admin-delete-user" data-id="' + esc(u.id) + '">Eliminar</button>';
       } else {
         html += '            <span style="font-size:0.75rem;color:var(--text-tertiary);">Protegido</span>';
       }
@@ -316,6 +376,9 @@
     editarUsuario: editarUsuario,
     alternarEstadoUsuario: alternarEstadoUsuario,
     restablecerContrasena: restablecerContrasena,
+    enviarRecuperacion: enviarRecuperacion,
+    refrescarUsuarios: refrescarUsuarios,
+    isCloud: cloudOn,
     eliminarUsuario: eliminarUsuario,
     obtenerParametros: obtenerParametros,
     guardarParametros: guardarParametros,
