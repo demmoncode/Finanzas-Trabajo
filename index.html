@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FINANZAS APP - Gestión y Planificación Financiera Personal</title>
+    <meta name="description" content="Plataforma SaaS de gestión, análisis, diagnóstico y planificación financiera personal desarrollada en HTML5, CSS3 y JavaScript puro." />
+    <meta property="og:title" content="FINANZAS APP - Gestión y Planificación Financiera Personal" />
+    <meta property="og:description" content="Plataforma SaaS de gestión, análisis, diagnóstico y planificación financiera personal desarrollada en HTML5, CSS3 y JavaScript puro." />
+    <meta property="og:type" content="website" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="app-layout">
+      <!-- SIDEBAR LATERAL MODERNO -->
+      <aside class="sidebar">
+        <div>
+          <!-- Logo & Marca -->
+          <div class="brand-section" id="sidebar-brand-btn" title="Ir al Dashboard">
+            <div class="brand-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </div>
+            <div>
+              <div class="brand-name">FINANZAS APP</div>
+              <div class="brand-tagline">Finanzas personales</div>
+            </div>
+          </div>
+
+          <!-- Navegación: Grupo Principal -->
+          <div class="nav-group">
+            <div class="nav-group-title">Principal</div>
+            <ul class="nav-menu">
+              <li>
+                <button class="nav-button active" data-tab="dashboard">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                    <span>Resumen</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="transactions">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+                    <span>Movimientos</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="budget">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+                    <span>Presupuesto</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="goals">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                    <span>Metas de ahorro</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="emergency_fund">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <span>Fondo de emergencia</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="invest">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                    <span>Inversión</span>
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Navegación: Análisis -->
+          <div class="nav-group">
+            <div class="nav-group-title">Análisis</div>
+            <ul class="nav-menu">
+              <li>
+                <button class="nav-button" data-tab="indicators">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m3 3 7.8 7.8a2 2 0 0 0 2.8 0L21 3"/><path d="m21 9v12H3V9"/><path d="M9 21V12h6v9"/></svg>
+                    <span>Diagnóstico y ratios</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="recommendations">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>
+                    <span>Recomendaciones</span>
+                  </div>
+                  <span class="nav-pill-badge" id="sidebar-rec-badge" style="display:none;">0</span>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="debts">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+                    <span>Deudas</span>
+                  </div>
+                </button>
+              </li>
+              <li>
+                <button class="nav-button" data-tab="history">
+                  <div class="nav-button-left">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                    <span>Seguimiento histórico</span>
+                  </div>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Pie del menú: ajustes -->
+        <div class="sidebar-footer">
+
+          <button class="nav-button" data-tab="profile" style="padding: 0.5rem 0.75rem;">
+            <div class="nav-button-left">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              <span>Ajustes y datos</span>
+            </div>
+          </button>
+        </div>
+      </aside>
+
+      <!-- ÁREA DE CONTENIDO -->
+      <div class="main-viewport">
+        <!-- Barra superior: moneda, periodo y acciones -->
+        <header class="top-header">
+          <div class="header-actions">
+            <!-- Selector Global de Moneda (COP, USD, EUR) -->
+            <div class="currency-selector-pill" id="header-currency-selector-wrap" title="Cambiar divisa de visualización en toda la aplicación">
+              <select id="header-currency-select" class="currency-select-input" aria-label="Seleccionar moneda de visualización">
+                <option value="COP">COP ($)</option>
+                <option value="USD">USD (US$)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+            </div>
+
+            <!-- Indicador Discreto de Tasa de Cambio y Estado de Conexión -->
+            <button class="fx-indicator-btn" id="btn-fx-details" title="Ver tasas de cambio y estado de actualización">
+              <span class="fx-status-dot online" id="fx-status-dot"></span>
+              <span class="fx-indicator-text" id="fx-indicator-label">Tasas al día</span>
+            </button>
+
+            <!-- Selector de Periodo -->
+            <div class="period-selector-pill" title="Cambiar mes de análisis">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+              <input type="month" id="header-period-input" />
+            </div>
+
+            <!-- Botón Notificaciones con Punto de Alerta -->
+            <button class="action-icon-btn" id="header-btn-notifs" title="Recomendaciones activas">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+              <span class="badge-dot" id="header-notif-dot" style="display:none;"></span>
+            </button>
+
+            <!-- Widget Perfil de Usuario -->
+            <div class="user-profile-widget" id="header-profile-widget" title="Mi Cuenta">
+              <div class="user-avatar-icon" aria-label="Icono de usuario">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <div class="user-meta">
+                <span class="user-meta-name" id="header-user-name">Mi Cuenta</span>
+                <span class="user-meta-email" id="header-user-email">Configuración y perfil</span>
+              </div>
+            </div>
+
+            <!-- Botón CTA Primario -->
+            <button class="btn-primary" id="btn-header-new-tx">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <span>Nuevo movimiento</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- CONTENEDOR PRINCIPAL DE MÓDULOS -->
+        <main class="content-body" id="main-module-content">
+          <!-- Renderizado dinámicamente por app.js -->
+        </main>
+      </div>
+
+      <!-- MODAL ACCESIBLE GLOBAL -->
+      <div class="modal-backdrop" id="app-modal-overlay">
+        <div id="app-modal-content"></div>
+      </div>
+    </div>
+
+    <!-- Scripts en orden topológico (Vanilla JS Puro) -->
+    <script src="js/utils/currency.js"></script>
+    <script src="js/utils/formatters.js"></script>
+    <script src="js/utils/categories.js"></script>
+    <script src="js/services/storage.js"></script>
+    <script src="js/services/financialEngine.js"></script>
+    <script src="js/services/investmentEngine.js"></script>
+    <script src="js/services/recommendationEngine.js"></script>
+    <script src="js/modules/autenticacion.js"></script>
+    <script src="js/modules/gestionFinanciera.js"></script>
+    <script src="js/modules/planificacion.js"></script>
+    <script src="js/modules/analisis.js"></script>
+    <script src="js/modules/recomendaciones.js"></script>
+    <script src="js/modules/deudas.js"></script>
+    <script src="js/modules/inversion.js"></script>
+    <script src="js/modules/administracion.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
