@@ -1214,6 +1214,33 @@
         return;
       }
 
+      // Recuperar contraseña y reenviar verificación (Firebase)
+      if (target.closest('#btn-forgot-toggle')) {
+        var resetForm = document.getElementById('form-auth-reset');
+        if (resetForm) {
+          resetForm.style.display = resetForm.style.display === 'none' ? 'block' : 'none';
+          var loginMail = document.getElementById('auth-login-email');
+          var resetMail = document.getElementById('auth-reset-email');
+          if (resetMail && loginMail && !resetMail.value) resetMail.value = loginMail.value;
+        }
+        return;
+      }
+      if (target.closest('#btn-resend-verification')) {
+        window.FinCloud.resendVerification(
+          document.getElementById('auth-login-email').value,
+          document.getElementById('auth-login-password').value,
+          function (res) { showToast(res.message, res.success ? 'success' : 'warning'); }
+        );
+        return;
+      }
+      if (target.closest('#btn-admin-refresh')) {
+        window.FinApp.administracion.refrescarUsuarios(function (res) {
+          renderApp();
+          showToast(res.success ? 'Lista de usuarios actualizada.' : res.message, res.success ? 'success' : 'warning');
+        });
+        return;
+      }
+
       // Limpiar todos los datos
       if (target.closest('#btn-wipe-data')) {
         if (confirm('¿Estas seguro de reiniciar todos tus datos financieros a cero?')) {
@@ -1260,6 +1287,12 @@
       }
       var resetPwBtn = target.closest('[data-action="admin-reset-pw"]');
       if (resetPwBtn) {
+        if (window.FinApp.administracion.isCloud()) {
+          window.FinApp.administracion.enviarRecuperacion(resetPwBtn.getAttribute('data-id'), function (res) {
+            showToast(res.message, res.success ? 'success' : 'warning');
+          });
+          return;
+        }
         state.adminEditingUserId = resetPwBtn.getAttribute('data-id');
         state._resetPwEmail = resetPwBtn.getAttribute('data-email');
         openModal('admin-reset-pw');
@@ -1330,7 +1363,11 @@
         var rEmail = document.getElementById('auth-reg-email').value;
         var rPass = document.getElementById('auth-reg-password').value;
         window.FinApp.autenticacion.register(rName, rEmail, rPass, function (res) {
-          if (res.success) {
+          if (res.success && res.pendingVerification) {
+            state.isRegisterMode = false;
+            renderApp();
+            showToast('Revisa tu correo', 'success', res.message);
+          } else if (res.success) {
             state.currentUser = res.session;
             state.data = Storage.loadUserFinancialData(res.user.id);
             state.activeTab = 'dashboard';
@@ -1340,6 +1377,11 @@
           } else {
             showToast(res.message, 'warning');
           }
+        });
+      } else if (formId === 'form-auth-reset') {
+        e.preventDefault();
+        window.FinCloud.resetPassword(document.getElementById('auth-reset-email').value, function (res) {
+          showToast(res.message, res.success ? 'success' : 'warning');
         });
       } else if (formId === 'form-fund-contribution') {
         e.preventDefault();
